@@ -1,7 +1,7 @@
 const app = document.getElementById('app');
 const pages = {
     home: 'home.html',
-    login: 'login.html',
+    login: 'login-new.html',
     register: 'register-new.html',  // Sử dụng file đăng ký mới
     input: 'input.html',
     analysis: 'analysis.html'
