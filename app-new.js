@@ -12,8 +12,10 @@ let userTrees = [];
 
 // Initialize app
 function init() {
+    console.log('App initialized'); // Debug
     loadPage('home');
     checkAuthState();
+    console.log('Current user:', currentUser); // Debug
 }
 
 // Load page content
