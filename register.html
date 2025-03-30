@@ -46,34 +46,60 @@
     </div>
 </div>
 
+<script src="auth.js"></script>
 <script>
 function initRegister() {
     const form = document.getElementById('registerForm');
-    form.addEventListener('submit', (e) => {
+    form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        const email = document.getElementById('regEmail').value;
-        const password = document.getElementById('regPassword').value;
-        const confirmPassword = document.getElementById('confirmPassword').value;
-        
-        // Validation
-        if (!email || !password || !confirmPassword) {
-            alert('Please fill in all fields');
+        try {
+            const email = document.getElementById('regEmail').value;
+            const password = document.getElementById('regPassword').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+
+            // Basic validation
+            if (!email || !password || !confirmPassword) {
+                throw new Error('Vui lòng điền đầy đủ thông tin');
+            }
+
+            if (password !== confirmPassword) {
+                throw new Error('Mật khẩu không khớp');
+            }
+
+            if (!email.includes('@') || !email.includes('.')) {
+                throw new Error('Email không hợp lệ');
+            }
+
+            // Register user
+            await auth.register(email, password);
+            alert('Đăng ký thành công!');
+            app.navigateTo('input');
+        } catch (error) {
+            alert('Lỗi: ' + error.message);
+        }
+    });
+}
+            alert('Vui lòng nhập địa chỉ email hợp lệ');
             return;
         }
-        
-        if (password !== confirmPassword) {
-            alert('Passwords do not match');
+
+        // Check if user already exists
+        const existingUsers = JSON.parse(localStorage.getItem('treeHealthUsers') || '[]');
+        if (existingUsers.some(u => u.email === email)) {
+            alert('Email đã được đăng ký');
             return;
         }
-        
+
         // Store user data
         const user = { email, password };
+        existingUsers.push(user);
+        localStorage.setItem('treeHealthUsers', JSON.stringify(existingUsers));
         localStorage.setItem('treeHealthUser', JSON.stringify(user));
         app.currentUser = user;
         
-        // Redirect to login
-        alert('Registration successful! Please login.');
-        app.navigateTo('login');
+        // Redirect to input page
+        alert('Đăng ký thành công!');
+        app.navigateTo('input');
     });
 }
 </script>
