@@ -55,14 +55,22 @@ function initLogin() {
         const password = document.getElementById('password').value;
         const remember = document.getElementById('remember').checked;
         
-        // Simple validation
+        // Validate fields
         if (!email || !password) {
-            alert('Please fill in all fields');
+            alert('Vui lòng điền đầy đủ thông tin');
             return;
         }
+
+        // Check credentials
+        const existingUsers = JSON.parse(localStorage.getItem('treeHealthUsers') || '[]');
+        const user = existingUsers.find(u => u.email === email && u.password === password);
         
-        // Store user data
-        const user = { email, password };
+        if (!user) {
+            alert('Email hoặc mật khẩu không đúng');
+            return;
+        }
+
+        // Store session
         localStorage.setItem('treeHealthUser', JSON.stringify(user));
         if (remember) {
             localStorage.setItem('treeHealthRemember', 'true');
