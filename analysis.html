@@ -1,0 +1,282 @@
+<div class="min-h-screen bg-gradient-to-b from-green-50 to-green-100 p-4">
+    <div class="max-w-6xl mx-auto">
+        <header class="bg-white rounded-lg shadow-md p-4 mb-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-green-800">
+                <i class="fas fa-chart-line mr-2"></i> Tree Health Analysis
+            </h1>
+            <div>
+                <button onclick="app.navigateTo('input')" 
+                        class="bg-green-100 hover:bg-green-200 text-green-800 font-bold py-2 px-4 rounded-full mr-2">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Input
+                </button>
+                <button onclick="app.navigateTo('home')" 
+                        class="text-green-600 hover:text-green-800">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Risk Summary Card -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-xl font-semibold text-green-700 mb-4">
+                    <i class="fas fa-exclamation-triangle mr-2"></i> Risk Summary
+                </h2>
+                <div id="riskSummary" class="space-y-3">
+                    <!-- Risk items will be added here dynamically -->
+                </div>
+            </div>
+
+            <!-- Health Trends Card -->
+            <div class="bg-white rounded-lg shadow-md p-6 lg:col-span-2">
+                <h2 class="text-xl font-semibold text-green-700 mb-4">
+                    <i class="fas fa-chart-bar mr-2"></i> Health Trends
+                </h2>
+                <div class="h-64">
+                    <canvas id="healthChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tree Analysis Cards -->
+        <div id="treeAnalysis" class="mt-6 grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- Tree analysis cards will be added here dynamically -->
+        </div>
+    </div>
+</div>
+
+<script>
+function initAnalysis() {
+    if (!app.currentUser || app.userTrees.length === 0) {
+        alert('No tree data available');
+        app.navigateTo('input');
+        return;
+    }
+
+    // Group trees by month
+    const treesByMonth = {};
+    app.userTrees.forEach(tree => {
+        if (!treesByMonth[tree.month]) {
+            treesByMonth[tree.month] = [];
+        }
+        treesByMonth[tree.month].push(tree);
+    });
+
+    // Analyze trees and display results
+    displayRiskSummary(app.userTrees);
+    displayHealthChart(treesByMonth);
+    displayTreeAnalysis(app.userTrees);
+}
+
+function displayRiskSummary(trees) {
+    const riskSummary = document.getElementById('riskSummary');
+    riskSummary.innerHTML = '';
+
+    // Simple AI risk assessment
+    const highRiskTrees = trees.filter(tree => 
+        tree.tilt > 10 || (tree.canopy / tree.height) > 2
+    ).length;
+
+    const mediumRiskTrees = trees.filter(tree => 
+        tree.tilt > 5 || (tree.canopy / tree.height) > 1.5
+    ).length - highRiskTrees;
+
+    const healthyTrees = trees.length - highRiskTrees - mediumRiskTrees;
+
+    // Add risk items
+    if (highRiskTrees > 0) {
+        riskSummary.innerHTML += `
+        <div class="flex items-center p-3 bg-red-100 rounded-lg">
+            <i class="fas fa-exclamation-circle text-red-500 mr-3 text-xl"></i>
+            <div>
+                <h3 class="font-medium">High Risk Trees</h3>
+                <p class="text-sm">${highRiskTrees} trees with significant tilt or large canopy</p>
+            </div>
+        </div>
+        `;
+    }
+
+    if (mediumRiskTrees > 0) {
+        riskSummary.innerHTML += `
+        <div class="flex items-center p-3 bg-yellow-100 rounded-lg">
+            <i class="fas fa-exclamation-circle text-yellow-500 mr-3 text-xl"></i>
+            <div>
+                <h3 class="font-medium">Medium Risk Trees</h3>
+                <p class="text-sm">${mediumRiskTrees} trees showing early signs of instability</p>
+            </div>
+        </div>
+        `;
+    }
+
+    riskSummary.innerHTML += `
+    <div class="flex items-center p-3 bg-green-100 rounded-lg">
+        <i class="fas fa-check-circle text-green-500 mr-3 text-xl"></i>
+        <div>
+            <h3 class="font-medium">Healthy Trees</h3>
+            <p class="text-sm">${healthyTrees} trees with good stability</p>
+        </div>
+    </div>
+    `;
+}
+
+function displayHealthChart(treesByMonth) {
+    const ctx = document.getElementById('healthChart').getContext('2d');
+    const months = Object.keys(treesByMonth).sort();
+    const avgTilt = months.map(month => {
+        const trees = treesByMonth[month];
+        return trees.reduce((sum, tree) => sum + tree.tilt, 0) / trees.length;
+    });
+    const avgCanopyRatio = months.map(month => {
+        const trees = treesByMonth[month];
+        return trees.reduce((sum, tree) => sum + (tree.canopy / tree.height), 0) / trees.length;
+    });
+
+    new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: months.map(m => `Month ${m}`),
+            datasets: [
+                {
+                    label: 'Average Tilt (°)',
+                    data: avgTilt,
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    tension: 0.3
+                },
+                {
+                    label: 'Canopy/Height Ratio',
+                    data: avgCanopyRatio,
+                    borderColor: '#10b981',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.3
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+}
+
+function displayTreeAnalysis(trees) {
+    const treeAnalysis = document.getElementById('treeAnalysis');
+    treeAnalysis.innerHTML = '';
+
+    // Get latest data for each tree
+    const latestTrees = {};
+    trees.forEach(tree => {
+        if (!latestTrees[tree.id] || latestTrees[tree.id].month < tree.month) {
+            latestTrees[tree.id] = tree;
+        }
+    });
+
+    // Create analysis cards
+    Object.values(latestTrees).forEach(tree => {
+        const riskLevel = calculateRiskLevel(tree);
+        
+        treeAnalysis.innerHTML += `
+        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+            <div class="p-4 ${riskLevel.background}">
+                <h3 class="text-lg font-medium text-white">
+                    <i class="fas fa-tree mr-2"></i> Tree ${tree.id}
+                    <span class="float-right">${riskLevel.text}</span>
+                </h3>
+            </div>
+            <div class="p-4">
+                <div class="grid grid-cols-3 gap-4 mb-4">
+                    <div class="text-center">
+                        <p class="text-sm text-gray-500">Height</p>
+                        <p class="font-bold">${tree.height} cm</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm text-gray-500">Tilt</p>
+                        <p class="font-bold">${tree.tilt}°</p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-sm text-gray-500">Canopy</p>
+                        <p class="font-bold">${tree.canopy} m²</p>
+                    </div>
+                </div>
+                <div class="h-40">
+                    <canvas id="treeChart-${tree.id}"></canvas>
+                </div>
+            </div>
+        </div>
+        `;
+    });
+
+    // Render individual tree charts
+    Object.values(latestTrees).forEach(tree => {
+        renderTreeChart(tree);
+    });
+}
+
+function calculateRiskLevel(tree) {
+    const tiltRisk = tree.tilt > 10 ? 2 : tree.tilt > 5 ? 1 : 0;
+    const canopyRisk = (tree.canopy / tree.height) > 2 ? 2 : (tree.canopy / tree.height) > 1.5 ? 1 : 0;
+    const totalRisk = tiltRisk + canopyRisk;
+
+    if (totalRisk >= 3) {
+        return {
+            text: 'High Risk',
+            background: 'bg-red-600',
+            color: 'text-red-600'
+        };
+    } else if (totalRisk >= 1) {
+        return {
+            text: 'Medium Risk',
+            background: 'bg-yellow-600',
+            color: 'text-yellow-600'
+        };
+    } else {
+        return {
+            text: 'Healthy',
+            background: 'bg-green-600',
+            color: 'text-green-600'
+        };
+    }
+}
+
+function renderTreeChart(tree) {
+    const ctx = document.getElementById(`treeChart-${tree.id}`).getContext('2d');
+    const riskLevel = calculateRiskLevel(tree);
+    
+    new Chart(ctx, {
+        type: 'radar',
+        data: {
+            labels: ['Height', 'Tilt', 'Canopy/Height'],
+            datasets: [{
+                label: 'Tree Metrics',
+                data: [
+                    Math.min(tree.height / 200, 1) * 100, // Normalized height
+                    tree.tilt * 2, // 0-20 scale
+                    (tree.canopy / tree.height) * 50 // 0-2 ratio scaled to 0-100
+                ],
+                backgroundColor: `${riskLevel.color}20`,
+                borderColor: riskLevel.color,
+                borderWidth: 2,
+                pointBackgroundColor: riskLevel.color
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                r: {
+                    angleLines: {
+                        display: true
+                    },
+                    suggestedMin: 0,
+                    suggestedMax: 100
+                }
+            }
+        }
+    });
+}
+</script>
