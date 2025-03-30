@@ -1,0 +1,143 @@
+<div class="min-h-screen bg-gradient-to-b from-green-50 to-green-100 p-4">
+    <div class="max-w-4xl mx-auto">
+        <header class="bg-white rounded-lg shadow-md p-4 mb-6 flex justify-between items-center">
+            <h1 class="text-2xl font-bold text-green-800">
+                <i class="fas fa-tree mr-2"></i> Tree Data Input
+            </h1>
+            <button onclick="app.navigateTo('home')" 
+                    class="text-green-600 hover:text-green-800">
+                <i class="fas fa-sign-out-alt"></i> Logout
+            </button>
+        </header>
+
+        <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+            <h2 class="text-xl font-semibold text-green-700 mb-4">
+                <i class="fas fa-calendar-alt mr-2"></i> Current Month: 
+                <span id="currentMonth" class="font-bold">Month 1</span>
+            </h2>
+            
+            <div id="treeForms" class="space-y-6">
+                <!-- Tree input forms will be added here dynamically -->
+            </div>
+            
+            <div class="mt-6">
+                <button id="addTreeBtn" 
+                        class="bg-green-100 hover:bg-green-200 text-green-800 font-bold py-2 px-4 rounded-full">
+                    <i class="fas fa-plus mr-2"></i> Add Another Tree
+                </button>
+            </div>
+        </div>
+
+        <div class="flex justify-end">
+            <button id="submitDataBtn" 
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition duration-300">
+                <i class="fas fa-chart-line mr-2"></i> Analyze Data
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+let treeCount = 0;
+
+function initInput() {
+    // Load user's trees if they exist
+    if (app.currentUser) {
+        const storedTrees = localStorage.getItem(`trees_${app.currentUser.email}`);
+        if (storedTrees) {
+            app.userTrees = JSON.parse(storedTrees);
+            treeCount = app.userTrees.length || 1;
+        }
+    }
+
+    // Set up month display
+    const monthDisplay = document.getElementById('currentMonth');
+    const currentMonth = localStorage.getItem('currentMonth') || 1;
+    monthDisplay.textContent = `Month ${currentMonth}`;
+
+    // Initialize tree forms
+    const treeForms = document.getElementById('treeForms');
+    if (treeCount === 0) {
+        addTreeForm();
+    } else {
+        for (let i = 0; i < treeCount; i++) {
+            addTreeForm(i + 1);
+        }
+    }
+
+    // Set up event listeners
+    document.getElementById('addTreeBtn').addEventListener('click', () => {
+        treeCount++;
+        addTreeForm(treeCount);
+    });
+
+    document.getElementById('submitDataBtn').addEventListener('click', submitData);
+}
+
+function addTreeForm(treeNumber = 1) {
+    const treeForms = document.getElementById('treeForms');
+    const formId = `tree-${treeNumber}`;
+    
+    const formHTML = `
+    <div id="${formId}" class="border border-green-200 rounded-lg p-4 bg-green-50">
+        <h3 class="text-lg font-medium text-green-700 mb-3">
+            <i class="fas fa-tree mr-2"></i> Tree ${treeNumber}
+        </h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div>
+                <label for="height-${treeNumber}" class="block text-sm font-medium text-gray-700">Height (cm)</label>
+                <input type="number" id="height-${treeNumber}" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
+            </div>
+            <div>
+                <label for="tilt-${treeNumber}" class="block text-sm font-medium text-gray-700">Tilt Angle (°)</label>
+                <input type="number" id="tilt-${treeNumber}" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
+            </div>
+            <div>
+                <label for="canopy-${treeNumber}" class="block text-sm font-medium text-gray-700">Canopy Area (m²)</label>
+                <input type="number" step="0.01" id="canopy-${treeNumber}" required
+                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-green-500 focus:ring-green-500 p-2 border">
+            </div>
+        </div>
+    </div>
+    `;
+    
+    treeForms.insertAdjacentHTML('beforeend', formHTML);
+}
+
+function submitData() {
+    const currentMonth = parseInt(localStorage.getItem('currentMonth') || 1);
+    const trees = [];
+    
+    for (let i = 1; i <= treeCount; i++) {
+        const height = parseFloat(document.getElementById(`height-${i}`)?.value);
+        const tilt = parseFloat(document.getElementById(`tilt-${i}`)?.value);
+        const canopy = parseFloat(document.getElementById(`canopy-${i}`)?.value);
+        
+        if (isNaN(height) || isNaN(tilt) || isNaN(canopy)) {
+            alert(`Please fill in all fields for Tree ${i}`);
+            return;
+        }
+        
+        trees.push({
+            id: i,
+            month: currentMonth,
+            height,
+            tilt,
+            canopy
+        });
+    }
+    
+    // Save data
+    if (app.currentUser) {
+        const allTrees = [...app.userTrees, ...trees];
+        localStorage.setItem(`trees_${app.currentUser.email}`, JSON.stringify(allTrees));
+        localStorage.setItem('currentMonth', currentMonth + 1);
+        app.userTrees = allTrees;
+    }
+    
+    // Navigate to analysis
+    app.navigateTo('analysis');
+}
+</script>
