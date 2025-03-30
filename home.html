@@ -1,0 +1,38 @@
+<div class="tree-bg min-h-screen flex flex-col items-center justify-center p-4 bg-green-900 bg-opacity-70 text-white">
+    <div class="max-w-4xl w-full bg-white bg-opacity-10 backdrop-blur-sm rounded-xl shadow-2xl p-8">
+        <div class="text-center mb-8">
+            <h1 class="text-4xl font-bold mb-2">TreeHealth AI</h1>
+            <p class="text-xl">Monitor your trees' health with AI-powered analytics</p>
+        </div>
+
+        <div class="grid md:grid-cols-2 gap-8 mb-8">
+            <div class="bg-green-800 bg-opacity-50 p-6 rounded-lg">
+                <i class="fas fa-tree text-4xl mb-4"></i>
+                <h3 class="text-2xl font-semibold mb-2">Tree Monitoring</h3>
+                <p>Track growth, tilt, and canopy health of your trees over time.</p>
+            </div>
+            <div class="bg-green-800 bg-opacity-50 p-6 rounded-lg">
+                <i class="fas fa-robot text-4xl mb-4"></i>
+                <h3 class="text-2xl font-semibold mb-2">AI Analysis</h3>
+                <p>Get intelligent risk assessments and fall predictions.</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row gap-4 justify-center">
+            <button onclick="app.navigateTo('login')" 
+                    class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-full transition duration-300">
+                <i class="fas fa-sign-in-alt mr-2"></i>Login
+            </button>
+            <button onclick="app.navigateTo('register')" 
+                    class="bg-white hover:bg-gray-100 text-green-800 font-bold py-3 px-6 rounded-full transition duration-300">
+                <i class="fas fa-user-plus mr-2"></i>Register
+            </button>
+        </div>
+    </div>
+</div>
+
+<script>
+function initHome() {
+    // Additional home page initialization if needed
+}
+</script>
